@@ -6,7 +6,7 @@ Perform model selection.
 To use this you do not need any special dependency in your program. All you need is to accept a command line
 argument and to output some data on stdout.
 
-Input: hyperparameter grid  (yml configuration file OR hyperopt specification exported from python file)
+Input: hyperparameter grid  (yaml configuration file)
 Output: best hyperparametrization
 
 Application should accept hyperparameters from a --hp command line parameter. The format of the --hp parameter is
@@ -51,7 +51,8 @@ def load_grid(filename: str):
     :param filename:
     :return:
     """
-    grid = None
+    grid: dict
+
     if filename.endswith('.yaml') or filename.endswith('.yml'):
         with open(filename, 'r') as f:
             grid = yaml.safe_load(f)  # FIXME Handle YAMLError?
@@ -60,10 +61,6 @@ def load_grid(filename: str):
         with open(filename, 'r') as f:
             grid = json.load(f)  # FIXME Handle Exception?
         grid = interpret_grid(grid)
-    # elif filename.endswith('.py'):
-    #     with open(filename, 'r') as f:
-    #         grid = eval(f.read(), {'hyperopt': hyperopt, 'hp': hp, 'scope': scope}, {})
-    #         # No need to interpret the grid here.
     else:
         raise ValueError(f"File extension is not supported.")
 
@@ -74,7 +71,8 @@ def interpret_grid(raw_grid, base_key=''):
     """
     Takes a raw grid, expressed as a dictionary which was loaded from a yaml or json file, and
     adds hyperopt expressions to it
-    :param raw_grid:
+    :param raw_grid: the raw grid specification
+    :param base_key: key prefix
     :return:
     """
     grid = {}
@@ -100,7 +98,6 @@ def unit_run(program_path, hyperparams):
     cp = subprocess.run(["python", program_path, "--hp", hp_string], capture_output=True, encoding="utf-8")
 
     # Find the metrics
-    # TODO: Capture the additional metrics too
     data = re.findall(r"^---$([\s\S]+?)(?=^---$)", cp.stdout, flags=re.MULTILINE)
 
     # Let's find the last occurrence of the validation loss
@@ -114,6 +111,9 @@ def unit_run(program_path, hyperparams):
             loss = float(item['Validation loss'])
             if math.isnan(loss):
                 loss = float('+inf')
+
+            # Merge the old dict with the new dict. Note that only top level keys are
+            # merged, while the rest (e.g. "Additional metrics") is completely substituted.
             merged_dict = {**merged_dict, **item}  # Shallow merge
         except yaml.YAMLError:
             pass
@@ -124,14 +124,9 @@ def unit_run(program_path, hyperparams):
         # No loss found in the output; abort
         print(cp.stdout)
         print(cp.stderr)
-        assert False, "No loss"  # FIXME Safe fail
+        assert False, "No loss found"  # FIXME Safe fail
 
-    measurements = {}
-
-    if 'Best epoch' in merged_dict:
-        measurements['epochs'] = int(merged_dict['Best epoch'])
-
-    return loss, measurements
+    return loss, merged_dict
 
 
 def get_computation_wrapper(program_path, repeat=1, break_on_infnan=True):
@@ -152,7 +147,6 @@ def get_computation_wrapper(program_path, repeat=1, break_on_infnan=True):
 
 def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
     algo = HyperOptSearch(opt_space, metric="loss", mode="min")
-    #re_algo = Repeater(algo, repeat=n_repetitions)
 
     name = os.path.basename(program_path)
     if name.endswith('.py'):
@@ -164,9 +158,7 @@ def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
 
     best_trial = analysis.get_best_trial(metric="loss", mode="min")
 
-    #print(best_trial.__dict__)
     measurements = best_trial.last_result['measurements']
-    #best_loss = best_trial.last_result['loss']
     best_hyperparams = best_trial.config
 
     return best_hyperparams, measurements, best_trial
@@ -191,9 +183,15 @@ def main():
     grid = load_grid(args.grid_file)
     program = os.path.join(os.getcwd(), args.program)  # FIXME Allow extra args
     best, measurements, best_trial = parallel_optim(program, grid, n_searches=args.searches, n_repetitions=args.repeats)
+
+    print("")
+    print(f"Best trial: {best_trial.trial_id}")
+    print("")
+    print(f"Hyperparameters:")
     print(best)
+    print("")
+    print(f"Measurements:")
     print(measurements)
-    print(best_trial)
 
 
 if __name__ == "__main__":

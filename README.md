@@ -57,3 +57,11 @@ alpha: [0.1, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9]
  ```
  
  Run with `modsel grid.yaml experiment.py --searches 30`.
+
+## Installing
+
+To install the unstable, development version:
+
+    pip install git+https://github.com/danieleds/modsel.git
+    
+You will then find `modsel` in your `$PATH`.

@@ -33,7 +33,7 @@ argparser.add_argument('--hp', type=str)
 args = argparser.parse_args()
 hp = yaml.safe_load(args.hp)
 
-# Load a dataset and train a classifier
+# Load a dataset and train a model
 X, y = load_boston(return_X_y=True)
 clf = Ridge(alpha=hp['alpha'], normalize=hp['normalize'])
 clf.fit(X[:250], y[:250])

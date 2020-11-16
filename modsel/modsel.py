@@ -95,7 +95,7 @@ def unit_run(program_path, hyperparams):
     :return:
     """
     hp_string = json.dumps(hyperparams)
-    cp = subprocess.run(["python", program_path, "--hp", hp_string], capture_output=True, encoding="utf-8")
+    cp = subprocess.run([program_path, "--hp", hp_string], capture_output=True, encoding="utf-8")
 
     # Find the metrics
     data = re.findall(r"^---$([\s\S]+?)(?=^---$)", cp.stdout, flags=re.MULTILINE)
@@ -164,7 +164,17 @@ def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
     return best_hyperparams, measurements, best_trial
 
 
-def main():
+def early_checks(grid_file: str, program: str):
+    if not os.access(program, os.X_OK):
+        print(f"The program `{program}` is not executable or does not exist.", file=sys.stderr)
+        return False
+    if not os.access(grid_file, os.R_OK):
+        print(f"The file `{grid_file}` is not readable or does not exist.", file=sys.stderr)
+        return False
+    return True
+
+
+def main() -> int:
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--searches', type=int, default=20)
     argparser.add_argument('--repeats', type=int, default=1)
@@ -177,6 +187,9 @@ def main():
     print("You have invoked this script as:")
     print(sys.argv)
     print()
+
+    if not early_checks(args.grid_file, args.program):
+        return 1
 
     ray.init(num_cpus=args.cpus, num_gpus=args.gpus)
 
@@ -193,6 +206,10 @@ def main():
     print(f"Measurements:")
     print(measurements)
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    r = main()
+    if r != 0:
+        sys.exit(r)

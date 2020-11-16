@@ -17,9 +17,10 @@ The guiding principle of this tool is a complete decoupling between your experim
  
  ## Minimal example
  
- Your code (`experiment.py`):
+ Your executable code (`experiment.py`):
  
  ```python
+#!/usr/bin/env python3
 import argparse
 import ruamel.yaml as yaml
 from sklearn.datasets import load_boston

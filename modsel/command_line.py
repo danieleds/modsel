@@ -1,5 +1,8 @@
+import sys
 import modsel
 
 
 def main():
-    modsel.main()
+    r = modsel.main()
+    if r != 0:
+        sys.exit(r)

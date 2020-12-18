@@ -46,7 +46,12 @@ print("---")
 print(yaml.dump({'Validation loss': loss}))
 print("---")
 ```
- 
+
+It is important to log the loss as a YAML string enclosed by `---`.
+You can log whatever you want: the only mandatory field is `Validation loss`,
+a scalar which indicates the performance of the hyperparametrization. Lower
+losses correspond to better models.
+
 The hyperparameters grid (`grid.yaml`):
  
 ```yaml

@@ -167,6 +167,7 @@ def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
 def early_checks(grid_file: str, program: str):
     if not os.access(program, os.X_OK):
         print(f"The program `{program}` is not executable or does not exist.", file=sys.stderr)
+        print(f"Maybe you should run: chmod +x '{program}'.", file=sys.stderr)
         return False
     if not os.access(grid_file, os.R_OK):
         print(f"The file `{grid_file}` is not readable or does not exist.", file=sys.stderr)

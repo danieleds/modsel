@@ -13,13 +13,13 @@ The guiding principle of this tool is a complete decoupling between your experim
  2. You accept a given command line argument to provide hyperparameters, and you print the validation loss on stdout (no dependency on this library)
  3. You define a yaml hyperparameter grid and you run `modsel` over your script
  
- If your experiment can accept a hyperparametrization and can emit a scalar measure of how good it is, then you can use this tool.
+If your experiment can accept a hyperparametrization and can emit a scalar measure of how good it is, then you can use this tool.
  
- ## Minimal example
+## Minimal example
  
- Your executable code (`experiment.py`):
+Your code `experiment.py` (make sure it is executable):
  
- ```python
+```python
 #!/usr/bin/env python3
 import argparse
 import ruamel.yaml as yaml
@@ -45,19 +45,29 @@ loss = float(-clf.score(X[250:], y[250:]))
 print("---")
 print(yaml.dump({'Validation loss': loss}))
 print("---")
-
- ```
+```
  
- The hyperparameters grid (`grid.yaml`):
+The hyperparameters grid (`grid.yaml`):
  
- ```yaml
+```yaml
 normalize:
   - True
   - False
 alpha: [0.1, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9]
- ```
+```
  
- Run with `modsel grid.yaml experiment.py --searches 30`.
+Run with `modsel grid.yaml experiment.py --searches 30`. The software will
+select the best hyperparameters and will print them to stdout:
+
+```
+...
+
+Hyperparameters:
+{'alpha': 1000.0, 'normalize': False}
+
+Measurements:
+[{'Validation loss': -0.590815454310589}]
+```
 
 ## Installing
 

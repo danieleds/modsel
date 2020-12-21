@@ -122,8 +122,8 @@ def unit_run(program_path, hyperparams):
 
     if loss is None:
         # No loss found in the output; abort
-        print(cp.stdout)
-        print(cp.stderr)
+        print(cp.stdout, file=sys.stderr)
+        print(cp.stderr, file=sys.stderr)
         assert False, "No loss found"  # FIXME Safe fail
 
     return loss, merged_dict

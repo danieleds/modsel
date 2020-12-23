@@ -145,7 +145,7 @@ def get_computation_wrapper(program_path, repeat=1, break_on_infnan=True):
     return opt_wrapper
 
 
-def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
+def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10, num_cpus=1, num_gpus=1):
     algo = HyperOptSearch(opt_space, metric="loss", mode="min")
 
     name = os.path.basename(program_path)
@@ -154,7 +154,7 @@ def parallel_optim(program_path, opt_space, n_searches=1, n_repetitions=10):
 
     analysis = tune.run(get_computation_wrapper(program_path, repeat=n_repetitions),
                         name=name, search_alg=algo, num_samples=n_searches,
-                        resources_per_trial={'cpu': 10, 'gpu': 0.5})
+                        resources_per_trial={'cpu': num_cpus, 'gpu': num_gpus})
 
     best_trial = analysis.get_best_trial(metric="loss", mode="min")
 
@@ -179,8 +179,8 @@ def main() -> int:
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--searches', type=int, default=20)
     argparser.add_argument('--repeats', type=int, default=1)
-    argparser.add_argument('--cpus', type=int, default=50)
-    argparser.add_argument('--gpus', type=int, default=2)
+    argparser.add_argument('--cpus', type=str, default="10:50")
+    argparser.add_argument('--gpus', type=str, default="1:2")
     argparser.add_argument('grid_file', metavar='grid_file', type=str)
     argparser.add_argument('program', metavar='program', type=str)
     args = argparser.parse_args()
@@ -192,11 +192,22 @@ def main() -> int:
     if not early_checks(args.grid_file, args.program):
         return 1
 
-    ray.init(num_cpus=args.cpus, num_gpus=args.gpus)
+    # Parse cpus gpus
+    cpus = [float(v) for v in args.cpus.split(':', 1)]
+    gpus = [float(v) for v in args.gpus.split(':', 1)]
+    if len(cpus) == 1:
+        cpus = [round(cpus[0])/2.0, round(cpus[0])]
+    if len(gpus) == 1:
+        gpus = [round(gpus[0])/2.0, round(gpus[0])]
+    cpus[1] = round(cpus[1])
+    gpus[1] = round(gpus[1])
+
+    ray.init(num_cpus=cpus[1], num_gpus=gpus[1])
 
     grid = load_grid(args.grid_file)
     program = os.path.join(os.getcwd(), args.program)  # FIXME Allow extra args
-    best, measurements, best_trial = parallel_optim(program, grid, n_searches=args.searches, n_repetitions=args.repeats)
+    best, measurements, best_trial = parallel_optim(program, grid, n_searches=args.searches, n_repetitions=args.repeats,
+                                                    num_cpus=cpus[0], num_gpus=gpus[0])
 
     print("")
     print(f"Best trial: {best_trial.trial_id}")

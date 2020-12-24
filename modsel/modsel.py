@@ -177,12 +177,19 @@ def early_checks(grid_file: str, program: str):
 
 def main() -> int:
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('--searches', type=int, default=20)
-    argparser.add_argument('--repeats', type=int, default=1)
-    argparser.add_argument('--cpus', type=str, default="10:50")
-    argparser.add_argument('--gpus', type=str, default="1:2")
-    argparser.add_argument('grid_file', metavar='grid_file', type=str)
-    argparser.add_argument('program', metavar='program', type=str)
+    argparser.add_argument('--searches', type=int, default=20, help='Number of random hyperparametrizations to try')
+    argparser.add_argument('--repeats', type=int, default=1,
+                           help='Number of repetitions for averaging over a single hyperparametrization')
+    argparser.add_argument('--cpus', type=str, default="10:50",
+                           help='Number of CPUs to use in parallel and in total, in the format '
+                                '<resources_per_trial>:<total_resources>, e.g. "10:50"')
+    argparser.add_argument('--gpus', type=str, default="1:2",
+                           help='Number of GPUs to use in parallel and in total, in the format '
+                                '<resources_per_trial>:<total_resources>, e.g. ".5:4"')
+    argparser.add_argument('grid_file', metavar='grid_file', type=str,
+                           help='Path to the YAML file describing the hyperparameters search space')
+    argparser.add_argument('program', metavar='program', type=str,
+                           help='Path to the executable program to optimize')
     args = argparser.parse_args()
 
     print("You have invoked this script as:")

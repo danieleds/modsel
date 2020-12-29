@@ -209,7 +209,8 @@ def main() -> int:
     cpus[1] = round(cpus[1])
     gpus[1] = round(gpus[1])
 
-    ray.init(num_cpus=cpus[1], num_gpus=gpus[1])
+    ray.init(num_cpus=cpus[1], num_gpus=gpus[1], include_dashboard=False)
+    print("Ray initialized")
 
     grid = load_grid(args.grid_file)
     program = os.path.join(os.getcwd(), args.program)  # FIXME Allow extra args

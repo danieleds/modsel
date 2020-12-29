@@ -217,8 +217,14 @@ def main() -> int:
     best, measurements, best_trial = parallel_optim(program, grid, n_searches=args.searches, n_repetitions=args.repeats,
                                                     num_cpus=cpus[0], num_gpus=gpus[0])
 
+    try:
+        values = np.asfarray([m['Validation loss'] for m in measurements])
+    except (KeyError, ValueError) as e:
+        values = np.asfarray([])
+
     print("")
     print(f"Best trial: {best_trial.trial_id}")
+    print(f"Loss (mean, std): {values.mean()}\t{values.std()}")
     print("")
     print(f"Hyperparameters:")
     print(best)

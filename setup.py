@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='modsel',
-      version='0.1.1',
+      version='0.1.2',
       description='A simple model selection tool for machine learning experiments',
       url='http://github.com/danieleds/modsel',
       author='Daniele Di Sarli',

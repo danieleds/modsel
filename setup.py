@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='modsel',
-      version='0.1.2',
+      version='0.1.3',
       description='A simple model selection tool for machine learning experiments',
       url='http://github.com/danieleds/modsel',
       author='Daniele Di Sarli',
@@ -17,4 +17,4 @@ setup(name='modsel',
             'hyperopt',
             'ray[tune]'
       ],
-      zip_safe=False)
+      zip_safe=True)

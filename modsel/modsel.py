@@ -188,7 +188,7 @@ def main() -> int:
                                 '<resources_per_trial>:<total_resources>, e.g. ".5:4"')
     argparser.add_argument('--out-hp', type=str,
                            help='File in which to write the best hyperparameters (JSON or YAML detected from '
-                                'the extension of the file).')
+                                'the extension of the file)')
     argparser.add_argument('grid_file', metavar='grid_file', type=str,
                            help='Path to the YAML file describing the hyperparameters search space')
     argparser.add_argument('program', metavar='program', type=str,

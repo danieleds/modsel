@@ -186,6 +186,9 @@ def main() -> int:
     argparser.add_argument('--gpus', type=str, default="1:2",
                            help='Number of GPUs to use in parallel and in total, in the format '
                                 '<resources_per_trial>:<total_resources>, e.g. ".5:4"')
+    argparser.add_argument('--out-hp', type=str,
+                           help='File in which to write the best hyperparameters (JSON or YAML detected from '
+                                'the extension of the file).')
     argparser.add_argument('grid_file', metavar='grid_file', type=str,
                            help='Path to the YAML file describing the hyperparameters search space')
     argparser.add_argument('program', metavar='program', type=str,
@@ -221,6 +224,14 @@ def main() -> int:
         values = np.asfarray([m['Validation loss'] for m in measurements])
     except (KeyError, ValueError) as e:
         values = np.asfarray([])
+
+    if args.out_hp:
+        with open(args.out_hp, 'w') as outfile:
+            # FIXME The JSON/YAML library may have problems dumping values such as 1e3, which get represented as 1000.0
+            if args.out_hp.lower().endswith('.yml') or args.out_hp.lower().endswith('.yaml'):
+                yaml.dump(best, outfile)
+            else:
+                json.dump(best, outfile)
 
     print("")
     print(f"Best trial: {best_trial.trial_id}")
